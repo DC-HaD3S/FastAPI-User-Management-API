@@ -8,6 +8,8 @@ import models
 from database import SessionLocal, engine
 from auth.bearer import jwtBearer
 from passlib.context import CryptContext
+import bcrypt
+bcrypt.__about__ = bcrypt
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
