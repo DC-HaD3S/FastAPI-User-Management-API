@@ -1,42 +1,43 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import Annotated
 from app.schemas import user_schema
-from app.controllers import user_controller
-from app.database import SessionLocal
-from app.auth.jwt_bearer import JWTBearer
+from app.schemas.common import MessageResponse
+from app.database import get_db
+from app.services.user_service import UserService
+from app.auth.dependencies import get_current_user_id  
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@router.post("/signup", response_model=MessageResponse)
+def signup(user: user_schema.UserCreate, db: Session = Depends(get_db)):
+    return UserService(db).signup_user(user)
 
-db_dependency = Annotated[Session, Depends(get_db)]
+@router.post("/login")
+def login(user: user_schema.UserLogin, db: Session = Depends(get_db)):
+    return UserService(db).login_user(user)
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
-def signup(user: user_schema.UserCreate, db: db_dependency):
-    return user_controller.create_user(user, db)
+@router.get("/users/{user_id}", response_model=user_schema.UserOut)
+def get_user(user_id: int, db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
+    return UserService(db).get_user_by_id(user_id)
 
-@router.post("/login", status_code=status.HTTP_200_OK)
-def login(user: user_schema.UserLogin, db: db_dependency):
-    return user_controller.login_user(user, db)
+@router.get("/users", response_model=list[user_schema.UserOut])
+def get_users(db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
+    return UserService(db).get_all_users()
 
-@router.get("/", status_code=200, dependencies=[Depends(JWTBearer())])
-def list_users(db: Session = Depends(get_db)):
-    return user_controller.get_all_users(db)
+@router.put("/users/{user_id}", response_model=user_schema.UserOut)
+def update_user(
+    user_id: int,
+    updates: user_schema.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
+    return UserService(db).update_user(user_id, updates)
 
-@router.get("/{user_id}", status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
-def get_user(user_id: int, db: db_dependency):
-    return user_controller.get_user(user_id, db)
+@router.delete("/users/{user_id}", response_model=MessageResponse)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
+    return UserService(db).delete_user(user_id, current_user_id)
 
-@router.put("/{user_id}", status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
-def update_user(user_id: int, user: user_schema.UserUpdate, db: db_dependency):
-    return user_controller.update_user(user_id, user, db)
-
-@router.delete("/{user_id}", status_code=status.HTTP_200_OK)
-def delete_user(user_id: int, db: Session = Depends(get_db), token: str = Depends(JWTBearer())):
-    return user_controller.delete_user(user_id, db, token=token)

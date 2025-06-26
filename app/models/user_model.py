@@ -1,11 +1,10 @@
-from pydantic import EmailStr, Field
-from sqlalchemy import Boolean, Column, Integer, String
-from app.database import Base 
-
+from sqlalchemy import Column, Integer, String
+from app.database import Base
 
 class User(Base):
-    __tablename__="users"
+    __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
-    username=Column(String(50),unique=True)
-    email = Column(String(255), unique=True, nullable=True)
-    password = Column(String(255), nullable=True) 
+    username = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)

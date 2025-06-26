@@ -3,8 +3,8 @@ from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
-    email: Optional[EmailStr]
-    password: Optional[str]
+    email: EmailStr
+    password: str
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -15,12 +15,10 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
 
-class UserDelete(BaseModel):
+class UserOut(BaseModel):
+    id: int
+    username: str
     email: EmailStr
 
     class Config:
-        json_schema_extra = {
-            "example": {
-                "email": "rohit@example.com"
-            }
-        }
+        orm_mode = True

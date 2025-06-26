@@ -1,35 +1,24 @@
-import time
-import jwt
+import time, jwt
 from decouple import config
 from dotenv import load_dotenv
-import os
-
-# Load environment variables from .env file
 load_dotenv()
 
-# Get values from environment variables
-JWT_SECRET = config("secret", default="default_secret_key")
-JWT_ALGORITHM = config("algorithm", default="HS256")
+JWT_SECRET = config("secret")
+JWT_ALGORITHM = config("algorithm")
 
-def token_response(token: str):
-    return {
-        "access_token": token
-    }
-
-def signJwt(userID: str):
-    payload = {
-        "userID": userID,
-        "expiry": time.time() + 500  # expires in 500 seconds
-    }
+def signJwt(user_id: int): 
+    payload = {"userID": user_id, "expiry": time.time() + 3600}
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-    return token_response(token)
+    return {"access_token": token}
 
-def decodeJwt(token: str):
+
+def decodeJwt(token):
+    if isinstance(token, str):
+        token = token.encode()  
     try:
-        decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        # Check if token is still valid
-        return decoded_token if decoded_token.get("expiry", 0) >= time.time() else None
+        decoded = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return decoded
     except jwt.ExpiredSignatureError:
         return None
-    except jwt.InvalidTokenError:
+    except jwt.DecodeError:
         return None
