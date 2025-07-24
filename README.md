@@ -1,5 +1,4 @@
-<xaiArtifact artifact_id="331bd63b-9262-4ef7-8b97-f90867ae5d37" artifact_version_id="2f04d4f3-bc89-4cd3-b240-12f48f34388e" title="README for FastAPI User Management API" contentType="text/markdown">
-FastAPI User Management API
+
 
 ## Overview
 This project is a FastAPI-based RESTful API for managing user accounts, including signup, login, retrieval, update, and deletion of user data. It uses JWT for authentication, SQLAlchemy for database operations, and Pydantic for data validation.
